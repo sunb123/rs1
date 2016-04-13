@@ -1,0 +1,437 @@
+<!--
+COLLABORATORS:
+Natalie Lao
+-->
+
+<!--
+NOTE:
+Questionnaire link: https://docs.google.com/forms/d/18SNN391021GNb_ePZ4tQ8IxKNgUir-uMY9XENNolXW8/viewform
+Given to users manually between tests.
+
+Implemented specified prediction algo
+
+Trial counts can be easily adjusted in method displayNextTrial()
+-->
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<!-- Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<style>
+.menu-button {
+  font-size: 18pt;
+}
+.test-button {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 20pt;
+}
+.dropdown {
+  margin-right: 60px;
+}
+#trial_display {
+    display: block;
+    text-align: center;
+    line-height: 150%;
+    font-size: 35pt;
+}
+.experiment_label {
+  font-size: 15pt;
+  display: block;
+  text-align: center;
+}
+</style>
+
+<html>
+
+<div id="start" class="test-button">
+<button type="button" class="btn btn-primary btn-lg test-button" data-toggle="modal" data-target="#myModal">
+  Begin Experiment
+</button>
+</div>
+
+<div id="startFirstBlock" class="test-button" hidden>
+<label class="experiment_label">You have finished the test experiment!</label>
+<label class="experiment_label">When ready, proceed to the first part of the study.</label>
+<button type="button" class="btn btn-primary btn-lg test-button">
+  Start
+</button>
+</div>
+
+<div id="startSecondBlockTestRun" class="test-button" hidden>
+<label class="experiment_label">You have finished the first part of the study!</label>
+<label class="experiment_label">Your tester will give you a questionnaire to fill out.</label>
+<br>
+<label class="experiment_label">When ready, proceed to the second part of the study.</label>
+<button type="button" class="btn btn-primary btn-lg test-button" data-toggle="modal" data-target="#myModal">
+  Start
+</button>
+</div>
+
+<div id="startSecondBlock" class="test-button" hidden>
+<label class="experiment_label">You have finished the test experiment!</label>
+<br>
+<label class="experiment_label">When ready, proceed real experiment.</label>
+<button type="button" class="btn btn-primary btn-lg test-button">
+  Start
+</button>
+</div>
+
+<div id="finishScreen" hidden>
+<label class="experiment_label">Experiment Finished!</label>
+<label class="experiment_label">Your tester will give you a final questionnaire to fill out.</label>
+<label class="experiment_label">Thank you so much!</label>
+</div>
+
+<!-- Instruction Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Instructions</h4>
+      </div>
+      <div class="modal-body" style="font-size:15pt;">
+        Please run the 8 trial experiment to familiarize yourself with this test. Select the correct item from the indicated menu.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Start</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="experiment" hidden>
+<label id="trial_display"><span id="currentMenu"></span> -> <span id="currentItem"></span></label>
+
+<table id="menu_table" align="center">
+<tr>
+<th>
+<div class="dropdown col-md-4">
+  <button class="btn btn-default dropdown-toggle menu-button" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Menu 1
+    <span class="caret"></span>
+  </button>
+  <ul id="menu1" class="dropdown-menu" aria-labelledby="dropdownMenu1"></ul>
+</div>
+</th>
+
+<th>
+<div class="dropdown col-md-4">
+  <button class="btn btn-default dropdown-toggle menu-button" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Menu 2
+    <span class="caret"></span>
+  </button>
+  <ul id="menu2" class="dropdown-menu" aria-labelledby="dropdownMenu2"></ul>
+</div>
+</th>
+
+<th>
+<div class="dropdown col-md-4">
+  <button class="btn btn-default dropdown-toggle menu-button" type="button" id="dropdownMenu3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Menu 3
+    <span class="caret"></span>
+  </button>
+  <ul id="menu3" class="dropdown-menu" aria-labelledby="dropdownMenu3"></ul>
+</div>
+</th>
+</tr>
+</table>
+</div>
+
+</html>
+
+<script>
+
+$(document).ready(function(){
+
+  var list_items = [["Frog","Newt","Toad","Lizard"],["Cookie","Pie","Turnover","Scone"],["Angry","Calm","Scared","Happy"],["Walnut","Chestnut","Almond","Pecan"],["France","Spain","Germany","Italy"],["Beijing","Tokyo","Bangkok","Seoul"],["January","August","June","November"],["Sparrow","Eagle","Peacock","Parrot"],["Cat","Dog","Moose","Goat"],["Saab","Toyota","Audi","Ford"],["Rose","Carnation","Tulip","Daisy"],["Bass","Trout","Cod","Salmon"],["Van","Sedan","Convertible","SUV"],["Rain","Snow","Hail","Sleet"],["Spatula","Knife","Ladle","Fork"],["Piano","Violin","Flute","Cello"],["Reagan","Clinton","Obama","Bush"],["Dragon","Phoenix","Unicorn","Griffin"],["Harry","Hermione","Ron","Snape"],["Elephant","Cheetah","Giraffe","Rhino"],["Desk","Chair","Table","Lamp"],["Mozart","Beethoven","Bach","Chopin"],["Sword","Shield","Mace","Pike"],["Macedonia","Mesopotamia","Babylon","Ottoman"],["Rifle","Grenade","Pistol","Missile"],["Rice","Bread","Pasta","Quinoa"],["Ghost","Vampire","Zombie","Werewolf"],["Opium","Marijuana","Heroin","Cocaine"],["Condo","Apartment","House","Mansion"],["Maseeh","Simmons","McCormick","Bexley"],["Ant","Bee","Spider","Cockroach"],["Apple","Orange","Banana","Pear"],["Vodka","Gin","Whiskey","Tequila"],["Plate","Mug","Pot","Basket"],["Hound","Terrier","Retriever","Collie"],["Alaska","Ohio","Texas","Delaware"],["Fedora","Nightcap","Helmet","Hat"],["Monet","Renoir","Cezanne","Picasso"],["Swim","Sail","Dive","Surf"],["Milk","Juice","Water","Beer"],["Calculus","Trigonometry","Geometry","Algebra"],["Scissors","Notebook","Ruler","Folder"],["Temple","Church","Mosque","Synagogue"],["Nose","Mouth","Eye","Ear"],["Brown","Red","Pink","Green"],["Thanksgiving","Christmas","Easter","Hanukkah"],["Skates","Boots","Heels","Sneakers"],["Beet","Lettuce","Tomato","Carrot"],["Network","System","Motherboard","Computer"],["Chemistry","Biology","Physics","Astronomy"],["Cylinder","Cube","Sphere","Prism"],["Tango","Salsa","Waltz","Foxtrot"],["Alpha","Beta","Gamma","Delta"],["Sapphire","Ruby","Amethyst","Emerald"],["Harvard","Yale","Brown","Princeton"],["Birch","Cedar","Oak","Maple"],["Soccer","Volleyball","Golf","Hockey"],["Lathe","Mill","Bandsaw","Drill"],["Ketchup","Mustard","Mayo","Relish"],["Aluminum","Steel","Zinc","Copper"],["Spade","Heart","Club","Diamond"],["Earthquake","Tornado","Hurricane","Monsoon"],["Karate","Judo","Taekwondo","Sumo"],["Dell","Mac","Acer","Toshiba"],["Bulbasaur","Pikachu","Squirtle","Charmander"],["Google","Facebook","Microsoft","Twitter"],["Gemini","Aries","Virgo","Capricorn"],["Jupiter","Pluto","Mercury","Venus"],["Zeus","Hades","Poseidon","Athena"],["Cher","Adele","Beyonce","Madonna"],["Cinderella","Mulan","Ariel","Belle"],["Chocolate","Marshmallow","Lollipop","Taffy"]];
+
+  var menu_ids = ["#menu1", "#menu2", "#menu3"];
+  var trial_index = 0;
+  var currentMenuIndex = 0;
+  var currentItemIndex = 0;
+  var startDate = null;
+  var inProgress = false;
+  var blockNumber = 0; // first block is index 0
+  var trial_indices = []; // create indices for trials
+  var isEphemeral = false;
+  var isTestRun = true;  
+  var frequencyOfMenu = {0:[], 1:[], 2:[]}
+  var selectionSetOfTrial = {}
+  var trialData = [];
+  var trialStartIndex = 0;
+
+  function downloadTrialData() {
+    var content = "data:text/plain;charset=utf-8,";
+    trialData.forEach(function(array, index){
+       dataString = array.join(",");
+       content += index < trialData.length ? dataString+"\n" : dataString;
+    }); 
+    var uri = encodeURI(content);
+    var link = document.createElement("a");
+    link.setAttribute("href", uri);
+    link.setAttribute("download", "trial-data.txt");
+    link.click();
+  }
+
+  // create trials for a user
+  for (var i=0;i<menu_ids.length;i++) {
+    trial_indices.push.apply(trial_indices, indicesForMenu(i))
+  }
+  trial_indices = shuffle(trial_indices)
+
+  // set condition order
+  if (Math.floor(Math.random()*2) == 0) {
+    isEphemeral = true
+  } else {
+    isEphemeral = false
+  }
+
+  createSelectionSet();
+
+  $('#myModal').on('hide.bs.modal', function(e){
+    if (blockNumber == 0) {
+      $('#experiment').removeAttr('hidden');
+      $('#start').attr('hidden',true);
+      runTaskBlock(menu_ids, list_items, isEphemeral);
+    } else {
+      $('#experiment').removeAttr('hidden');
+      $('#startSecondBlockTestRun').attr('hidden',true);
+      isTestRun = true
+      runTaskBlock(menu_ids, list_items, isEphemeral);
+    }
+  });
+
+  $(".dropdown").click(function(){
+    if (!$(this).hasClass("open") && !inProgress) {
+      inProgress = true
+      startDate = Date.now() // now date
+    }
+
+    if (isEphemeral) {
+      for (var i=0;i<16;i++) {        
+        if (selectionSetOfTrial[trial_index].indexOf(i) == -1) { // NOTE: fade if not in selection set
+          $(this).find(".menu_item").eq(i).fadeOut(0);
+          $(this).find(".menu_item").eq(i).fadeToggle(500);
+        }
+      }
+    }
+  });
+
+  $("#startFirstBlock").click(function(){
+    $(".test-button").attr('hidden',true)
+    $('#experiment').attr('hidden',false);
+    isTestRun = false
+    runTaskBlock(menu_ids, list_items, isEphemeral);
+  });
+
+  $("#startSecondBlock").click(function(){
+    $(".test-button").attr('hidden',true)
+    $('#experiment').attr('hidden',false);
+    isTestRun = false
+    runTaskBlock(menu_ids, list_items, isEphemeral);
+  });
+
+  function runTaskBlock(menu_ids, list_items, isEphemeral) {
+    if (isTestRun) {
+      trial_index = Math.floor(119*Math.random())
+      trialStartIndex = trial_index
+    } else {
+      trial_index = 0
+    }
+
+    createMenuItemsAll(list_items)
+
+    $(".menu_item").click(function() {
+      if (currentItemIndex + 16*currentMenuIndex == $(".menu_item").index($(this))) {
+        var timeDiff = Date.now() - startDate
+        if (!isTestRun) {
+          trialData.push([conditionText(isEphemeral), blockNumber, trial_index, timeDiff]) // NOTE: log data. TODO: determine best format.
+        }
+        trial_index += 1
+        displayNextTrial(isTestRun)
+        inProgress = false;
+      }
+    });
+    displayNextTrial(isTestRun); // initial display
+  };
+
+  function createSelectionSet() {
+    var mostRecentIndexOfMenu = {0:null, 1:null, 2:null}
+    var item = null
+    var frequencies = null
+    var mostRecent = null
+
+
+    for (var i=0;i<trial_indices.length;i++) {
+      item = trial_indices[i]
+      menu_index = item[0]
+      item_index = item[1]
+      frequencies = frequencyOfMenu[menu_index]
+      mostRecent = mostRecentIndexOfMenu[menu_index]
+
+      if (mostRecent !== null) {
+        if (mostRecent == frequencies[0]) {
+          selectionSetOfTrial[i] = [mostRecent, frequencies[1], frequencies[2]]
+        } else if (mostRecent == frequencies[1]) {
+          selectionSetOfTrial[i] = [mostRecent, frequencies[0], frequencies[2]]
+        } else {
+          selectionSetOfTrial[i] = [mostRecent, frequencies[0], frequencies[1]]
+        }
+      } else {
+        selectionSetOfTrial[i] = [frequencies[0], frequencies[1], frequencies[2]]
+      }
+      mostRecentIndexOfMenu[menu_index] = item_index
+    }
+
+    // add select-item into 18 random sets that don't have it.
+    var indicesToReplace = []
+    var trial = null
+
+    while (indicesToReplace.length < 18) {
+      trial = Math.floor(126*Math.random())
+      item = trial_indices[trial][1]
+      if (selectionSetOfTrial[trial].indexOf(item) == -1 && indicesToReplace.indexOf(trial) == -1) {// select item not in selectionItem
+        selectionSetOfTrial[trial][2] = item
+        indicesToReplace.push(trial)
+      }
+    }
+
+  }
+
+  function conditionText(isEphemeral) {
+    if (isEphemeral)
+      return "Experimental"
+    else
+      return "Control"
+  }
+
+  function displayNextTrial(isTestRun) {
+    if (isTestRun && trial_index == trialStartIndex+8) { // NOTE: adjust to shorten test block
+      trial_index = 0
+      $("#experiment").attr('hidden',true);      
+      $(".test-button").attr('hidden',true)
+      if (blockNumber == 0) {
+        $("#startFirstBlock").attr('hidden',false)
+      } else {
+        $("#startSecondBlock").attr('hidden',false)
+      }
+      return
+    } else if (blockNumber == 0 && trial_index == 126) { // NOTE: adjust to shorten real trial block
+      blockNumber += 1
+      isEphemeral = !isEphemeral
+      trial_index = 0
+      $("#experiment").attr('hidden',true);
+      $(".test-button").attr('hidden',true)
+      $("#startSecondBlockTestRun").attr('hidden',false)
+      return
+    } else if (blockNumber == 1 && trial_index == 126) { // NOTE: adjust to shorten real trial block
+      $("#experiment").attr('hidden',true);
+      $(".test-button").attr('hidden',true);
+      $("#finishScreen").attr('hidden',false)
+      downloadTrialData()
+      return
+    }
+
+    var nextItem = trial_indices[trial_index]
+    if (blockNumber == 0) {
+      currentMenuIndex = nextItem[0]
+    } else {
+      currentMenuIndex = (nextItem[0] + 1) % 3
+    }
+    currentItemIndex = nextItem[1]
+    var index = currentMenuIndex*16+currentItemIndex
+    var item = $(".menu_item:eq("+index+")").text()
+    $("#currentMenu").text(menuName(currentMenuIndex))
+    $("#currentItem").text(item)
+  }
+
+  // Create trial indices
+  function indicesForMenu(menu_index) {
+    var menuItemIndices = []
+    for(var i=0;i<8;i++) {
+      while(true) {
+        var index = Math.floor(Math.random()*16);
+        if (menuItemIndices.indexOf(index) == -1) {
+          menuItemIndices.push(index)
+          break
+        }
+      }
+    }
+    frequencyOfMenu[menu_index] = menuItemIndices.slice(0)
+
+    indexList = []
+    var frequencyList = [15,8,5,4,3,3,2,2]
+    for (var i=0; i<menuItemIndices.length; i++) {
+      for (var j=0;j<frequencyList[i];j++) {
+        indexList.push([menu_index, menuItemIndices[i]])
+      }
+    }
+    return indexList
+  }
+
+  function menuName(menu_id) {
+    if (menu_id == 0) {
+      return "Menu 1"
+    } else if (menu_id == 1) {
+      return "Menu 2"
+    } else if (menu_id == 2) {
+      return "Menu 3"
+    }
+  }
+
+  function createMenuItemsAll(list_items) {
+    var groupSelectedList = []
+    var groupIndex = null
+
+    for(var i=0;i<menu_ids.length;i++) { // NOTE: create new menu items each experiment block
+      var menu_items = {0: [], 1: [], 2: [], 3: []} // 4 blocks of 4 menu items
+      var countOfGroups = 0
+      while (countOfGroups < 4) {
+        groupIndex = Math.floor(Math.random()*72)
+        if (groupSelectedList.indexOf(groupIndex) == -1) {
+          menu_items[countOfGroups] = list_items[groupIndex].slice(0)
+          groupSelectedList.push(groupIndex)
+          countOfGroups += 1
+        }
+      }
+      $(menu_ids[i]).empty()
+      addItemListToMenu(menu_ids[i],menu_items,isEphemeral)
+    }
+  }
+
+  function addItemListToMenu(menu_id, menu_items, isEphemeral) {
+    var index = 0;
+    for (group_id in menu_items) {
+      for (var i=0;i<menu_items[group_id].length;i++) {
+        var list_item = `<li class="menu_item"><a href="#">` + menu_items[group_id][i] + `</a></li>`;
+        $(menu_id).append(list_item)
+        index += 1
+      }
+      if (group_id != Object.keys(menu_items).length-1) {
+        $(menu_id).append(`<li role="separator" class="divider"></li>`)
+      }
+    }
+  };
+  
+  //source: stackoverflow
+  function shuffle(array) {
+      for (var i = array.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+      }
+      return array;
+  }
+
+});
+
+</script>
