@@ -24,8 +24,8 @@ Implemented specified prediction algo
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
 
-<link rel="stylesheet" href="bower_components/lobibox/dist/css/lobibox.min.css"/>
-<script src="bower_components/lobibox/dist/js/lobibox.min.js"></script>
+<link rel="stylesheet" href="../../bower_components/lobibox/dist/css/lobibox.min.css"/>
+<script src="../../bower_components/lobibox/dist/js/lobibox.min.js"></script>
 
 <style>
 .menu-button {
@@ -424,6 +424,7 @@ $(document).ready(function(){
       }
     }
 
+    console.log(trial_indices[0], trial_index)
     var nextItem = trial_indices[trial_index]
     if (blockNumber == 0) {
       currentMenuIndex = nextItem[0]
