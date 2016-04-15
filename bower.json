@@ -1,0 +1,17 @@
+{
+  "name": "rs1",
+  "homepage": "https://github.com/sunb123/rs1",
+  "authors": [
+    "Brian <brian.sun41@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
